@@ -9,8 +9,8 @@ __metaclass__ = type
 
 import os
 
-from ansible.errors import AnsibleError, AnsibleAction, _AnsibleActionDone, AnsibleActionFail
-from ansible.module_utils._text import to_native
+from ansible.errors import AnsibleError, AnsibleAction, _AnsibleActionDone, AnsibleActionFail, AnsibleFileNotFound
+from ansible.module_utils._text import to_bytes, to_native, to_text
 from ansible.module_utils.parsing.convert_bool import boolean
 from ansible.plugins.action import ActionBase
 
@@ -45,6 +45,12 @@ class ActionModule(ActionBase):
             tmp_src = self._connection._shell.join_path(self._connection._shell.tmpdir, os.path.basename(src))
             self._transfer_file(src, tmp_src)
             self._fixup_perms2((self._connection._shell.tmpdir, tmp_src))
+
+            decrypt = boolean(self._task.args.get('decrypt', False), strict=False)
+            try:
+                tmp_src = self._loader.get_real_file(tmp_src, decrypt=decrypt)
+            except AnsibleFileNotFound as e:
+                raise AnsibleActionFail("could not find src=%s, %s" % (tmp_src, to_text(e)))
 
             new_module_args = self._task.args.copy()
             new_module_args.update(

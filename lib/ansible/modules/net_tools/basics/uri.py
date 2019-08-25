@@ -111,6 +111,9 @@ options:
       - The socket level timeout in seconds
     type: int
     default: 30
+  decrypt:
+    default : no
+    version_added: "2.10"
   headers:
     description:
         - Add custom HTTP headers to a request in the format of a YAML hash. As
@@ -181,7 +184,9 @@ seealso:
 - module: win_uri
 author:
 - Romeo Theriault (@romeotheriault)
-extends_documentation_fragment: files
+extends_documentation_fragment:
+  - decrypt
+  - files
 '''
 
 EXAMPLES = r'''
@@ -567,6 +572,7 @@ def main():
         timeout=dict(type='int', default=30),
         headers=dict(type='dict', default={}),
         unix_socket=dict(type='path'),
+        decrypt=dict(type='bool'),
     )
 
     module = AnsibleModule(
